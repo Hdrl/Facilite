@@ -1,0 +1,9 @@
+{% if viagens_list %}
+    <ul>
+    {% for viagen in viagens_list %}
+        <li><a href="/viagens/{{ viagen.id }}/">{{ viagen.destino }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Sem viagens ainda.</p>
+{% endif %}

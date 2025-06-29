@@ -1,0 +1,29 @@
+<p>{{ viagem.destino }}</p>
+
+<form method="get" action="{% url 'exportar_zip' viagem.id %}">
+	<button type="submit">Exportar Dados</button>
+</form>
+
+{% if despesas %}
+	<h2>Despesa viagem</h2>
+	<ul>
+	{% for despesa in despesas %}
+		<li>
+		{{ despesa }}
+		</li>
+	{% endfor %}
+	</ul>
+{% endif %}
+
+Total: {{sum}}
+
+<h3>Adicionar Despesa</h3>
+
+<!-- templates/upload_form.html -->
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Adcionar</button>
+</form>
+
+<a href="{% url 'viagens' %}">voltar</a>
