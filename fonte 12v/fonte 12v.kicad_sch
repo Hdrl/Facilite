@@ -395,6 +395,262 @@
 				)
 			)
 		)
+		(symbol "Diode_Bridge:ABS2"
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 2.54 6.985 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "ABS2"
+				(at 2.54 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Diode_SMD:Diode_Bridge_Diotec_ABS"
+				(at 3.81 3.175 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://diotec.com/tl_files/diotec/files/pdf/datasheets/abs2.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Miniature Glass Passivated Single-Phase Surface Mount Bridge Rectifiers, 140V Vrms, 0.8A If, ABS SMD package"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "rectifier acdc"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Diode*Bridge*Diotec*ABS*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "ABS2_0_1"
+				(polyline
+					(pts
+						(xy -2.54 3.81) (xy -1.27 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -2.54) (xy -2.54 -3.81)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 -1.27) (xy 3.81 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 1.27) (xy 3.81 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -3.81 2.54) (xy -2.54 1.27) (xy -1.905 3.175) (xy -3.81 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.54 -1.27) (xy -3.81 -2.54) (xy -1.905 -3.175) (xy -2.54 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 2.54) (xy 2.54 3.81) (xy 3.175 1.905) (xy 1.27 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.175 -1.905) (xy 1.27 -2.54) (xy 2.54 -3.81) (xy 3.175 -1.905)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -5.08 0) (xy 0 -5.08) (xy 5.08 0) (xy 0 5.08) (xy -5.08 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "ABS2_1_1"
+				(pin passive line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 7.62 270)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "Filter:Choke_Schaffner_RN102-0.3-02-12M"
 			(pin_names hide)
 			(exclude_from_sim no)
@@ -1015,22 +1271,38 @@
 		)
 	)
 	(junction
+		(at 29.21 63.5)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6faf7be6-d47a-4f21-a4db-d516ff6120df")
+	)
+	(junction
 		(at 29.21 50.8)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "94fdcb57-03b3-4860-9c78-c1d50cd19f12")
 	)
 	(junction
-		(at 33.02 63.5)
+		(at 44.45 63.5)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "dbbdf28f-621e-457f-8d41-6480963b567e")
+		(uuid "cd17fb8a-721e-4d7a-8ef8-d843e11f8097")
 	)
 	(junction
 		(at 44.45 50.8)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e21256b6-4daf-45d4-b02a-63d624b7a0ec")
+	)
+	(wire
+		(pts
+			(xy 44.45 73.66) (xy 44.45 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "038ccd93-8228-440c-8370-9cf66507fba9")
 	)
 	(wire
 		(pts
@@ -1061,6 +1333,16 @@
 			(type default)
 		)
 		(uuid "39ecf68d-81e6-4347-adc3-5aab4d75c8b8")
+	)
+	(wire
+		(pts
+			(xy 39.37 73.66) (xy 44.45 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3aa328cf-0d97-4fdc-811a-88ca9a438f98")
 	)
 	(wire
 		(pts
@@ -1104,6 +1386,16 @@
 	)
 	(wire
 		(pts
+			(xy 29.21 73.66) (xy 34.29 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b46fd5b5-e4d6-426e-93c4-9ea31c20f4cc")
+	)
+	(wire
+		(pts
 			(xy 44.45 63.5) (xy 44.45 50.8)
 		)
 		(stroke
@@ -1114,7 +1406,7 @@
 	)
 	(wire
 		(pts
-			(xy 34.29 73.66) (xy 34.29 63.5)
+			(xy 29.21 73.66) (xy 29.21 63.5)
 		)
 		(stroke
 			(width 0)
@@ -1132,19 +1424,9 @@
 		)
 		(uuid "cd349954-4741-4c5d-af09-f7e6ab722524")
 	)
-	(wire
-		(pts
-			(xy 33.02 63.5) (xy 34.29 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d181fbc9-097a-4388-b466-01634217098e")
-	)
 	(symbol
 		(lib_id "Filter:Choke_Schaffner_RN102-0.3-02-12M")
-		(at 36.83 78.74 90)
+		(at 36.83 78.74 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1153,21 +1435,21 @@
 		(fields_autoplaced yes)
 		(uuid "03e7f137-88a5-4509-8903-760696e807a3")
 		(property "Reference" "FL1"
-			(at 40.64 77.8509 90)
+			(at 40.64 77.7239 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
-		(property "Value" "Choke_Schaffner_RN102-0.3-02-12M"
-			(at 40.64 80.3909 90)
+		(property "Value" "~"
+			(at 40.64 79.629 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 			)
 		)
 		(property "Footprint" "Inductor_THT:Choke_Schaffner_RN102-04-14.0x14.0mm"
@@ -1550,6 +1832,81 @@
 			(project ""
 				(path "/350fa56d-c7dc-4741-86f8-d85412a3873b"
 					(reference "CX1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode_Bridge:ABS2")
+		(at 39.37 99.06 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ac89ec83-eecf-4eac-86f7-d613773d8822")
+		(property "Reference" "D1"
+			(at 48.26 92.6398 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "ABS2"
+			(at 48.26 95.1798 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:Diode_Bridge_Diotec_ABS"
+			(at 43.18 95.885 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://diotec.com/tl_files/diotec/files/pdf/datasheets/abs2.pdf"
+			(at 39.37 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Miniature Glass Passivated Single-Phase Surface Mount Bridge Rectifiers, 140V Vrms, 0.8A If, ABS SMD package"
+			(at 39.37 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "753f2cae-9041-40fb-8e76-8998c94da148")
+		)
+		(pin "2"
+			(uuid "416ea2a6-ec6a-4070-a1a2-80f4f4b62ed1")
+		)
+		(pin "1"
+			(uuid "6c681075-a975-4a8b-a9b1-ce15cc4ece95")
+		)
+		(pin "4"
+			(uuid "248d6608-f5d7-4cbf-8e20-9d52ea394ca8")
+		)
+		(instances
+			(project ""
+				(path "/350fa56d-c7dc-4741-86f8-d85412a3873b"
+					(reference "D1")
 					(unit 1)
 				)
 			)
