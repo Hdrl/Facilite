@@ -9,6 +9,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, Font, Alignment
 from .models import Viagen, Despesa
 from import_export.admin import ImportExportModelAdmin
+import locale
 
 def gerar_relatorio(modeladmin, request, queryset):
     if len(queryset)>1:
@@ -16,8 +17,8 @@ def gerar_relatorio(modeladmin, request, queryset):
     tmp_dir = tempfile.mkdtemp()
     zip_path = os.path.join(tmp_dir, 'exportacao.zip')
     viagem = queryset[0]
-    despesas = Despesa.objects.filter(viagem=viagem, tipo='S')
-    adiantamentos = Despesa.objects.filter(viagem=viagem, tipo='E')
+    despesas = Despesa.objects.filter(viagem=viagem, tipo='S').order_by('data')
+    adiantamentos = Despesa.objects.filter(viagem=viagem, tipo='E').order_by('data')
     wb = load_workbook('relatorio/relatorio_despesas.xlsx')
     ws = wb['Despesas']
     ws['A2'] = f"Empresa: {viagem.empresa}" 
@@ -195,7 +196,7 @@ def gerar_relatorio(modeladmin, request, queryset):
 @admin.register(Viagen)
 class ViagenAdmin(ImportExportModelAdmin):
         actions = [gerar_relatorio]
-        
-# Register your models here.
-admin.site.register(Despesa)
 
+@admin.register(Despesa)
+class DespesaAdmin(ImportExportModelAdmin):
+        list_display = ['descricao', 'data', 'valor']

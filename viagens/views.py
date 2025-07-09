@@ -35,8 +35,8 @@ def exportar_zip(request, viagen_id):
     tmp_dir = tempfile.mkdtemp()
     zip_path = os.path.join(tmp_dir, 'exportacao.zip')
     viagem = Viagen.objects.get(id=viagen_id)
-    despesas = Despesa.objects.filter(viagem=viagem, tipo='S')
-    adiantamentos = Despesa.objects.filter(viagem=viagem, tipo='E')
+    despesas = Despesa.objects.filter(viagem=viagem, tipo='S').order_by('data')
+    adiantamentos = Despesa.objects.filter(viagem=viagem, tipo='E').order_by('data')
     wb = load_workbook('relatorio/relatorio_despesas.xlsx')
     ws = wb['Despesas']
     ws['A2'] = f"Empresa: {viagem.empresa}" 
