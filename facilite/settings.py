@@ -33,8 +33,8 @@ ALLOWED_HOSTS = ['*']
 # ABILITA INTERNALIZAÇÃO
 USE_I18N = True
 LANGUAGE_CODE = 'pt-br'
-
-
+TIME_ZONE = 'America/Sao_Paulo'
+USE_TZ = True
 
 # Application definition
 
