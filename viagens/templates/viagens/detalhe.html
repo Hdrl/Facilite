@@ -22,8 +22,8 @@ Total: {{sum}}
 <!-- templates/upload_form.html -->
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Adcionar</button>
+    <input type="file" name="imagem" multiple>
+    <button type="submit">Enviar imagens</button>
 </form>
 
 <a href="{% url 'viagens' %}">voltar</a>

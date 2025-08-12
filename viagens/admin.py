@@ -2,14 +2,44 @@ from django.contrib import admin
 import zipfile
 import tempfile
 import os
-import datetime
 from django.http import FileResponse
 from django.http import HttpResponse
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, Font, Alignment
-from .models import Viagen, Despesa
+from .models import Viagem, TransacaoFinanceira
 from import_export.admin import ImportExportModelAdmin
+from bs4 import BeautifulSoup as bs4
 import locale
+import requests, re, datetime
+
+class UserFilteredAdmin(admin.ModelAdmin):
+    """
+    Admin base que filtra objetos pelo usuário logado.
+    Superusuários veem tudo.
+    """
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            self.exclude = ['usuario']
+        return qs.filter(usuario=request.user)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.usuario = request.user
+        obj.save()
+
+    def has_change_permission(self, request, obj=None):
+        if obj is None or request.user.is_superuser:
+            return True
+        return obj.usuario == request.user
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is None or request.user.is_superuser:
+            return True
+        return obj.usuario == request.user
 
 def gerar_relatorio(modeladmin, request, queryset):
     if len(queryset)>1:
@@ -17,8 +47,8 @@ def gerar_relatorio(modeladmin, request, queryset):
     tmp_dir = tempfile.mkdtemp()
     zip_path = os.path.join(tmp_dir, 'exportacao.zip')
     viagem = queryset[0]
-    despesas = Despesa.objects.filter(viagem=viagem, tipo='S').order_by('data')
-    adiantamentos = Despesa.objects.filter(viagem=viagem, tipo='E').order_by('data')
+    despesas = TransacaoFinanceira.objects.filter(viagem=viagem, usuario=request.user ,tipo='S').order_by('data')
+    adiantamentos = TransacaoFinanceira.objects.filter(viagem=viagem, usuario=request.user, tipo='E').order_by('data')
     wb = load_workbook('relatorio/relatorio_despesas.xlsx')
     ws = wb['Despesas']
     ws['A2'] = f"Empresa: {viagem.empresa}" 
@@ -57,10 +87,14 @@ def gerar_relatorio(modeladmin, request, queryset):
             nota_despesa = ws.cell(row=i, column=3)
             valor_despesa = ws.cell(row=i, column=4)
             
-            descricao_despesa.value = despesa.descricao.lower()
-            data_despesa.value = despesa.data.strftime('%d/%m/%Y %H:%M')
-            nota_despesa.value = f"=hyperlink(\"notas fiscal/{os.path.basename(despesa.imagem.path)}\", \"{os.path.basename(despesa.imagem.path)}\")"
-            valor_despesa.value = despesa.valor
+            if despesa.descricao:
+                descricao_despesa.value = despesa.descricao.lower()
+            if despesa.data:
+                data_despesa.value = despesa.data.strftime('%d/%m/%Y %H:%M')
+            if despesa.imagem:
+                nota_despesa.value = f"=hyperlink(\"notas fiscal/{os.path.basename(despesa.imagem.path)}\", \"{os.path.basename(despesa.imagem.path)}\")"
+            if despesa.valor:
+                valor_despesa.value = despesa.valor
             valor_despesa.number_format = 'R$ #,##0.00'
             
             descricao_despesa.border = borda
@@ -126,10 +160,14 @@ def gerar_relatorio(modeladmin, request, queryset):
             comprovante_adiantamento = ws.cell(row=i, column=3)
             valor_adiantamento = ws.cell(row=i, column=4)
             
-            descricao_adiantamento.value = adiantamento.descricao.lower()
-            data_adiantamento.value = adiantamento.data.strftime('%d/%m/%Y %H:%M')
-            comprovante_adiantamento.value = f"=hyperlink(\"notas fiscal/{os.path.basename(adiantamento.imagem.path)}\", \"{os.path.basename(adiantamento.imagem.path)}\")"
-            valor_adiantamento.value = adiantamento.valor
+            if adiantamento.descricao:
+                descricao_adiantamento.value = adiantamento.descricao.lower()
+            if adiantamento.data:
+                data_adiantamento.value = adiantamento.data.strftime('%d/%m/%Y %H:%M')
+            if adiantamento.imagem:
+                comprovante_adiantamento.value = f"=hyperlink(\"notas fiscal/{os.path.basename(adiantamento.imagem.path)}\", \"{os.path.basename(adiantamento.imagem.path)}\")"
+            if adiantamento.valor:
+                valor_adiantamento.value = adiantamento.valor
             valor_adiantamento.number_format = 'R$ #,##0.00'
             
             descricao_adiantamento.border = borda
@@ -193,10 +231,55 @@ def gerar_relatorio(modeladmin, request, queryset):
         zipf.write('relatorio/despesas.xlsx', arcname="despesas.xlsx")
     return FileResponse(open(zip_path, 'rb'), as_attachment=True, filename='despesas.zip')
 
-@admin.register(Viagen)
-class ViagenAdmin(ImportExportModelAdmin):
+def extrair_url(modeladmin, request, queryset):
+    for receita in queryset:
+        url = receita.nota_fiscal
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/115.0.0.0 Safari/537.36"
+            )
+        }
+        response = requests.get(url, headers=headers)
+        if not response:
+            continue
+        if response.status_code == 200:
+            soup = bs4(response.text, "html.parser")
+            #descricao
+            desc_transacao = soup.find_all(id="u20")
+            if desc_transacao:
+                receita.descricao = desc_transacao[0].text
+            #valor
+            valor_transacao = soup.find_all(class_="totalNumb txtMax")
+            if valor_transacao:
+                receita.valor = valor_transacao[0].text.replace(',', '.')
+            #data
+            r_str = r"\b\d{2}/\d{2}/\d{4}\b \b\d{2}:\d{2}:\d{2}\b"
+            dtime = re.search(r_str, response.text)
+            if dtime:
+                receita.data = datetime.datetime.strptime(dtime.group(), "%d/%m/%Y %H:%M:%S")
+        receita.save()
+                
+@admin.register(Viagem)
+class ViagemAdmin(ImportExportModelAdmin, UserFilteredAdmin):
         actions = [gerar_relatorio]
 
-@admin.register(Despesa)
-class DespesaAdmin(ImportExportModelAdmin):
+@admin.register(TransacaoFinanceira)
+class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
         list_display = ['descricao', 'data', 'valor']
+        list_filter = ['viagem']
+        actions = [extrair_url]
+        
+        def formfield_for_foreignkey(self, db_field, request, **kwargs):
+            if db_field.name == "viagem":
+                if request.user.is_superuser:
+                    kwargs["queryset"] = Viagem.objects.all()
+                else:
+                    kwargs["queryset"] = Viagem.objects.filter(usuario=request.user)
+            return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+admin.site.site_header = "Administração Viagem"
+admin.site.site_title = "Administração Viagem"
+admin.site.index_title = "Bem-vindo ao painel"
