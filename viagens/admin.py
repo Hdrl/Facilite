@@ -12,6 +12,22 @@ from bs4 import BeautifulSoup as bs4
 import locale
 import requests, re, datetime
 
+class UserViagensFilter(admin.SimpleListFilter):
+    title = "Viagens"
+    parameter_name = "viagem"
+    
+    def lookups(self, request, model_admin):
+        viagens = []
+        for viagem in Viagem.objects.all():
+            if viagem.usuario == request.user:
+                viagens.append((viagem.id, str(viagem)))
+        return viagens
+    
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(viagem=self.value())
+        return queryset
+    
 class UserFilteredAdmin(admin.ModelAdmin):
     """
     Admin base que filtra objetos pelo usuário logado.
@@ -268,7 +284,7 @@ class ViagemAdmin(ImportExportModelAdmin, UserFilteredAdmin):
 @admin.register(TransacaoFinanceira)
 class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
         list_display = ['descricao', 'data', 'valor']
-        list_filter = ['viagem']
+        list_filter = [UserViagensFilter]
         actions = [extrair_url]
         
         def formfield_for_foreignkey(self, db_field, request, **kwargs):
