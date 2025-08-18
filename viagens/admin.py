@@ -9,8 +9,9 @@ from openpyxl.styles import Border, Side, Font, Alignment
 from .models import Viagem, TransacaoFinanceira
 from import_export.admin import ImportExportModelAdmin
 from bs4 import BeautifulSoup as bs4
-import locale
 import requests, re, datetime
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 class UserViagensFilter(admin.SimpleListFilter):
     title = "Viagens"

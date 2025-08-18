@@ -14,12 +14,13 @@ from .forms import ImagemForm
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from bs4 import BeautifulSoup as bs4
-import locale
 import datetime
 import csv
 import os
 import zipfile
 import tempfile
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 # Create your views here.
         
