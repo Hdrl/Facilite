@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
 from django.db import models
 from datetime import datetime
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
 
 TIPO_CHOICES = [
     ('E', 'Entrada'),
@@ -34,4 +37,4 @@ class TransacaoFinanceira(models.Model):
     def __str__(self):
         if not (self.valor and self.descricao and self.data):
             return"—"
-        return f"{self.valor} - {self.descricao.upper()} - {self.data.strftime('%d/%m/%Y %H:%M')}"
+        return f"{locale.currency(self.valor, grouping=True)} - {self.descricao.upper()} - {self.data.strftime('%d/%m/%Y %H:%M')}"
