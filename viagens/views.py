@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Sum
 from django.template import loader
@@ -25,12 +25,7 @@ locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 # Create your views here.
         
 def index(request):
-    viagens = Viagem.objects.all()
-    template = loader.get_template("viagens/index.html")
-    context = {
-        'viagens_list': viagens
-    }
-    return HttpResponse(template.render(context, request))
+    return redirect("/admin")
     
 def detalhe(request, viagen_id):
     viagem = Viagem.objects.get(id=viagen_id)
