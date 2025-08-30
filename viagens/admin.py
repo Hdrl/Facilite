@@ -1,4 +1,8 @@
 from django.contrib import admin
+from django.urls import path
+from urllib.parse import urlparse
+from django.shortcuts import render, redirect
+from django.contrib.admin.sites import site
 import zipfile
 import tempfile
 import os
@@ -12,6 +16,51 @@ from bs4 import BeautifulSoup as bs4
 import requests, re, datetime
 import locale
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+def extrair_url(url):
+    transacao_financeira = {'descricao': '', 'data':None, 'valor':0};
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/115.0.0.0 Safari/537.36"
+        )
+    }
+    response = requests.get(url, headers=headers)
+    if not response:
+        return false
+    if response.status_code == 200:
+        hostname = urlparse(url).hostname
+        soup = bs4(response.text, "html.parser")
+        if hostname == 'portalsped.fazenda.mg.gov.br':
+            #descricao
+            desc_transacao = soup.select('#formPrincipal\:content-template-consulta > div.container > table.table.text-center > thead > tr:nth-child(2) > th > h4 > b')
+            if desc_transacao:
+                transacao_financeira['descricao'] = desc_transacao[0].text
+            #valor
+            valor_transacao = soup.select('#formPrincipal\:content-template-consulta > div.container > div:nth-child(8) > div.col-lg-2 > strong')
+            if valor_transacao:
+                transacao_financeira['valor'] = valor_transacao[0].text.replace(',', '.')
+            #data
+            r_str = r"\b\d{2}/\d{2}/\d{4}\b \b\d{2}:\d{2}:\d{2}\b"
+            dtime = re.search(r_str, response.text)
+            if dtime:
+                transacao_financeira['data'] = datetime.datetime.strptime(dtime.group(), "%d/%m/%Y %H:%M:%S")
+        elif hostname == 'www.fazenda.pr.gov.br':
+            #descricao
+            desc_transacao = soup.find_all(id="u20")
+            if desc_transacao:
+                transacao_financeira['descricao'] = desc_transacao[0].text
+            #valor
+            valor_transacao = soup.find_all(class_="totalNumb txtMax")
+            if valor_transacao:
+                transacao_financeira['valor'] = valor_transacao[0].text.replace(',', '.')
+            #data
+            r_str = r"\b\d{2}/\d{2}/\d{4}\b \b\d{2}:\d{2}:\d{2}\b"
+            dtime = re.search(r_str, response.text)
+            if dtime:
+                transacao_financeira['data'] = datetime.datetime.strptime(dtime.group(), "%d/%m/%Y %H:%M:%S")
+    return transacao_financeira
 
 class UserViagensFilter(admin.SimpleListFilter):
     title = "Viagens"
@@ -34,7 +83,6 @@ class UserFilteredAdmin(admin.ModelAdmin):
     Admin base que filtra objetos pelo usuário logado.
     Superusuários veem tudo.
     """
-
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
@@ -248,36 +296,14 @@ def gerar_relatorio(modeladmin, request, queryset):
         zipf.write('relatorio/despesas.xlsx', arcname="despesas.xlsx")
     return FileResponse(open(zip_path, 'rb'), as_attachment=True, filename='despesas.zip')
 
-def extrair_url(modeladmin, request, queryset):
+def extrair_url_selecionada(modeladmin, request, queryset):
     for receita in queryset:
-        url = receita.nota_fiscal
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/115.0.0.0 Safari/537.36"
-            )
-        }
-        response = requests.get(url, headers=headers)
-        if not response:
-            continue
-        if response.status_code == 200:
-            soup = bs4(response.text, "html.parser")
-            #descricao
-            desc_transacao = soup.find_all(id="u20")
-            if desc_transacao:
-                receita.descricao = desc_transacao[0].text
-            #valor
-            valor_transacao = soup.find_all(class_="totalNumb txtMax")
-            if valor_transacao:
-                receita.valor = valor_transacao[0].text.replace(',', '.')
-            #data
-            r_str = r"\b\d{2}/\d{2}/\d{4}\b \b\d{2}:\d{2}:\d{2}\b"
-            dtime = re.search(r_str, response.text)
-            if dtime:
-                receita.data = datetime.datetime.strptime(dtime.group(), "%d/%m/%Y %H:%M:%S")
+        transacao = extrair_url(receita.nota_fiscal)
+        receita.descricao = transacao['descricao']
+        receita.valor = transacao['valor']
+        receita.data = transacao['data']
         receita.save()
-                
+        
 @admin.register(Viagem)
 class ViagemAdmin(ImportExportModelAdmin, UserFilteredAdmin):
         actions = [gerar_relatorio]
@@ -286,8 +312,29 @@ class ViagemAdmin(ImportExportModelAdmin, UserFilteredAdmin):
 class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
         list_display = ['descricao', 'data', 'valor']
         list_filter = [UserViagensFilter]
-        actions = [extrair_url]
+        actions = [extrair_url_selecionada]
+        change_list_template = 'admin/viagens/transacaofinanceira/change_list.html'
         
+        def get_urls(self):
+            urls = super().get_urls()
+            custom_urls = [
+                path('qrcode/', self.admin_site.admin_view(self.qrcode_view), name='qrcode_view'),
+            ]
+            return custom_urls + urls
+
+        def qrcode_view(self, request):
+            model_admin = site._registry[Viagem]  # pega o ModelAdmin registrado
+            context = {
+                'opts': Viagem._meta,
+                'app_label': Viagem._meta.app_label,
+                'has_permission': True,
+                'title': 'QR Code das Viagens',
+                'media': model_admin.media,
+                'cl': None,  # evita erro se não estiver listando objetos
+            }
+
+            return render(request, 'admin/viagens/transacaofinanceira/qrcode.html', context)
+
         def formfield_for_foreignkey(self, db_field, request, **kwargs):
             if db_field.name == "viagem":
                 if request.user.is_superuser:
@@ -296,6 +343,18 @@ class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
                     kwargs["queryset"] = Viagem.objects.filter(usuario=request.user)
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+        def get_form(self, request, obj=None, **kwargs):
+            self.exclude = ['usuario']
+            form = super().get_form(request, obj, **kwargs)
+            nota_fiscal = request.GET.get('nota_fiscal')
+            if nota_fiscal:
+                transacao = extrair_url(nota_fiscal)
+                form.base_fields['nota_fiscal'].initial = nota_fiscal
+                if transacao:
+                    form.base_fields['descricao'].initial = transacao['descricao']
+                    form.base_fields['valor'].initial = transacao['valor']
+                    form.base_fields['data'].initial = transacao['data']  
+            return form
 
 admin.site.site_header = "Administração Viagem"
 admin.site.site_title = "Administração Viagem"

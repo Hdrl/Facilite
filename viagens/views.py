@@ -7,7 +7,6 @@ from io import StringIO
 from datetime import datetime
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, Font, Alignment
-
 from .models import Viagem
 from .models import TransacaoFinanceira
 from .forms import ImagemForm
@@ -23,7 +22,7 @@ import locale
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 # Create your views here.
-        
+
 def index(request):
     return redirect("/admin")
     

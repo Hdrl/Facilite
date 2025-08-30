@@ -1,0 +1,89 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <style>
+	canvas, video {
+	  position: absolute;
+	  top: 50%;
+	  left: 50%;
+	  transform: translate(-50%, -50%);
+	}
+  </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Início</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="/admin/viagens/transacaofinanceira/">Transacao financeiras</a>
+&rsaquo; <a href="/admin/viagens/transacaofinanceira/qrcode/">Leitura QR Code</a>
+</div>
+{% endblock %}
+
+{% block content %}
+	<video id="video" autoplay playsinline></video>
+	<canvas id="canvas"></canvas>
+	<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+  <script>
+	const video = document.getElementById('video');
+	const canvas = document.getElementById('canvas');
+	const ctx = canvas.getContext('2d');
+	let stream = null;
+	let qrCodes = [];
+
+	navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+	.then(s => {
+		stream = s;
+		video.srcObject = stream;
+		video.onloadedmetadata = () => {
+		  canvas.width = video.videoWidth;
+		  canvas.height = video.videoHeight;
+		  scanQRCode();
+		};
+	  })
+	.catch(err => console.error("Erro ao acessar a câmera:", err));
+
+	function drawBox(location) {
+	  const corners = [
+		location.topLeftCorner,
+		location.topRightCorner,
+		location.bottomRightCorner,
+		location.bottomLeftCorner,
+		location.topLeftCorner
+	  ];
+	  ctx.beginPath();
+	  ctx.moveTo(corners[0].x, corners[0].y);
+	  for (let i = 1; i < corners.length; i++) {
+		ctx.lineTo(corners[i].x, corners[i].y);
+	  }
+	  ctx.lineWidth = 4;
+	  ctx.strokeStyle = "#00FF00";
+	  ctx.stroke();
+	}
+
+	function stopCamera() {
+	  if (stream) {
+		stream.getTracks().forEach(track => track.stop());
+		video.srcObject = null;
+	  }
+	}
+
+	function scanQRCode() {
+	  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+	  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	  const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+	  if (code) {
+		drawBox(code.location);
+
+		if (!qrCodes.includes(code.data)) {
+		  qrCodes.push(code.data);
+		  window.location.href = "/admin/viagens/transacaofinanceira/add?nota_fiscal=" + code.data;
+		}
+	  } else {
+		requestAnimationFrame(scanQRCode);
+	  }
+	}
+  </script>
+{% endblock %}
