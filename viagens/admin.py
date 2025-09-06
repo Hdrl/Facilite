@@ -122,7 +122,7 @@ def gerar_relatorio(modeladmin, request, queryset):
     ws['A2'] = f"Empresa: {viagem.empresa}" 
     ws['C2'] = f"Setor: {viagem.setor}"
     ws['A3'] = f"Colaborador: {viagem.colaborador}"
-    ws['C3'] = f"Retorno: {viagem.retorno}"
+    ws['C3'] = f"Retorno: {viagem.retorno.strftime('%d/%m/%Y') if viagem.retorno else ''}"
     ws['A4'] = f"Destino: {viagem.destino}"
     ws['B4'] = f"Motivo Viagem: {viagem.motivo}"
     ws['A5'] = f"Saída: {viagem.saida}"
@@ -205,7 +205,7 @@ def gerar_relatorio(modeladmin, request, queryset):
         descricao_adiantamento.value = "Descrição"
         data_adiantamento.value = "Data"
         comprovante_adiantamento.value = "Comprovante"
-        valor_adiantamento.value = "Value"
+        valor_adiantamento.value = "Valor"
         
         cabecalho_adiantamento.border = borda
         ws.cell(row=cabecalho_row, column=2).border = borda
