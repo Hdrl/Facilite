@@ -15,6 +15,9 @@ from import_export.admin import ImportExportModelAdmin
 from bs4 import BeautifulSoup as bs4
 import requests, re, datetime
 import locale
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 def extrair_url(url):
@@ -34,11 +37,11 @@ def extrair_url(url):
         soup = bs4(response.text, "html.parser")
         if hostname == 'portalsped.fazenda.mg.gov.br':
             #descricao
-            desc_transacao = soup.select('#formPrincipal\:content-template-consulta > div.container > table.table.text-center > thead > tr:nth-child(2) > th > h4 > b')
+            desc_transacao = soup.select(r'#formPrincipal\:content-template-consulta > div.container > table.table.text-center > thead > tr:nth-child(2) > th > h4 > b')
             if desc_transacao:
                 transacao_financeira['descricao'] = desc_transacao[0].text
             #valor
-            valor_transacao = soup.select('#formPrincipal\:content-template-consulta > div.container > div:nth-child(8) > div.col-lg-2 > strong')
+            valor_transacao = soup.select(r'#formPrincipal\:content-template-consulta > div.container > div:nth-child(8) > div.col-lg-2 > strong')
             if valor_transacao:
                 transacao_financeira['valor'] = valor_transacao[0].text.replace(',', '.')
             #data
@@ -314,6 +317,7 @@ class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
         list_filter = [UserViagensFilter]
         actions = [extrair_url_selecionada]
         change_list_template = 'admin/viagens/transacaofinanceira/change_list.html'
+        exclude = ['usuario']
         
         def get_urls(self):
             urls = super().get_urls()
@@ -321,7 +325,8 @@ class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
                 path('qrcode/', self.admin_site.admin_view(self.qrcode_view), name='qrcode_view'),
             ]
             return custom_urls + urls
-
+        
+        @csrf_exempt
         def qrcode_view(self, request):
             model_admin = site._registry[Viagem]  # pega o ModelAdmin registrado
             context = {
@@ -333,6 +338,10 @@ class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
                 'cl': None,  # evita erro se não estiver listando objetos
             }
 
+            if request.method == "POST":
+                url = request.POST.get("url")
+                request.session['url_qrcode'] = url
+                return redirect('admin:viagens_transacaofinanceira_add')
             return render(request, 'admin/viagens/transacaofinanceira/qrcode.html', context)
 
         def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -343,19 +352,16 @@ class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
                     kwargs["queryset"] = Viagem.objects.filter(usuario=request.user)
             return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-        def get_form(self, request, obj=None, **kwargs):
-            self.exclude = ['usuario']
-            form = super().get_form(request, obj, **kwargs)
-            nota_fiscal = request.GET.get('nota_fiscal')
-            if nota_fiscal:
-                transacao = extrair_url(nota_fiscal)
-                form.base_fields['nota_fiscal'].initial = nota_fiscal
-                if transacao:
-                    form.base_fields['descricao'].initial = transacao['descricao']
-                    form.base_fields['valor'].initial = transacao['valor']
-                    form.base_fields['data'].initial = transacao['data']  
-            return form
-
+        def get_changeform_initial_data(self, request):
+            initial = super().get_changeform_initial_data(request)
+            dados = request.session.pop('url_qrcode', None)
+            if dados:
+                transacao = extrair_url(dados)
+                initial['nota_fiscal'] = dados
+                initial['descricao'] = transacao.get('descricao', '')
+                initial['valor'] = transacao.get('valor', '')
+                initial['data'] = transacao.get('data', '')
+            return initial
 admin.site.site_header = "Administração Viagem"
 admin.site.site_title = "Administração Viagem"
 admin.site.index_title = "Bem-vindo ao painel"

@@ -24,6 +24,10 @@
 {% block content %}
 	<video id="video" autoplay playsinline></video>
 	<canvas id="canvas"></canvas>
+	<form id="autoForm" method="post">
+		{% csrf_token %}
+		<input type="hidden" name="url" id="qrcodeURL">
+	</form>
 	<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
   <script>
 	const video = document.getElementById('video');
@@ -79,7 +83,9 @@
 
 		if (!qrCodes.includes(code.data)) {
 		  qrCodes.push(code.data);
-		  window.location.href = "/admin/viagens/transacaofinanceira/add?nota_fiscal=" + code.data;
+			stopCamera();
+			document.getElementById('qrcodeURL').value = code.data;
+			document.getElementById('autoForm').submit();
 		}
 	  } else {
 		requestAnimationFrame(scanQRCode);
