@@ -12,7 +12,7 @@ TIPO_CHOICES = [
 
 # Create your models here.
 class Viagem(models.Model):
-    destino=models.CharField(max_length=20) 
+    destino=models.CharField(max_length=50) 
     empresa=models.CharField(max_length=50, default = "Smart Picking Soluções Digitais Ltda")
     setor=models.CharField(max_length=10, default="Smart")
     colaborador=models.CharField(max_length=50)

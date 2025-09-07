@@ -313,6 +313,7 @@ class ViagemAdmin(ImportExportModelAdmin, UserFilteredAdmin):
 
 @admin.register(TransacaoFinanceira)
 class TransacaoFinanceiraAdmin(ImportExportModelAdmin, UserFilteredAdmin):
+        ordering=['-data']
         list_display = ['descricao', 'data', 'valor']
         list_filter = [UserViagensFilter]
         actions = [extrair_url_selecionada]
